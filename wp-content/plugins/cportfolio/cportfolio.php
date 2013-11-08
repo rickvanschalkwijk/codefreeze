@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Cportefolio
+* Plugin Name: Cportefolio
 * Plugin URI: http://URI_Of_Page_Describing_Plugin_and_Updates
 * Description: A simple but powerfull portfolio plugin using mason js
 * Version: 0.1
@@ -57,21 +57,6 @@ function cp_install() {
 	global $wpdb;
 	global $jal_db_version;
 	
-	$table_name = $wpdb->prefix . "cportfolio";
-	
-	$sql = "CREATE TABLE $table_name (
-	id mediumint(9) NOT NULL AUTO_INCREMENT,
-	time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
-	name tinytext NOT NULL,
-	text text NOT NULL,
-	url VARCHAR(55) DEFAULT '' NOT NULL,
-	UNIQUE KEY id (id)
-	);";
-	
-	require_once (ABSPATH . 'wp-admin/includes/upgrade.php');
-	dbDelta ( $sql );
-	
-	add_option ( "c_db_version", $c_db_version );
 }
 register_activation_hook( __FILE__, 'cp_install' );
 
@@ -134,7 +119,6 @@ function cp_register() {
 **********************************************************/
 
 add_action("admin_init", "CP_admin_init");
-add_action('save_post', 'CP_save_details');
 
 function CP_admin_init() {
 	add_meta_box("work_done", "Work Done", "CP_work_done_options", "portfolio", "side");
@@ -153,10 +137,9 @@ function CP_work_done_options() {
 	$playframework = (isset($custom["play"][0])) ? $custom["play"][0] : '';
 	$zendframework = (isset($custom["zf"][0])) ? $custom["zf"][0] : '';
 	$wordpress = (isset($custom["wp"][0])) ? $custom["wp"][0] : '';
-	$hosting = (isset($custom["sql"][0])) ? $custom["sql"][0] : '';
+	$hosting = (isset($custom["hosting"][0])) ? $custom["hosting"][0] : '';
 	?>
 	<table width="100%" border="0" class="options" cellspacing="5" cellpadding="5">
-		
 			<p><b>What did we do for the client?</b></p>
 		<tr>
 			<td><label for="logo">Logo</label></td>
@@ -203,6 +186,17 @@ function CP_work_done_options() {
 	
 }
 
+add_action('save_post', 'CP_save_workDone');
+function CP_save_workDone() {
+	global $post;
+	$custom_meta_fields = array( 'logo','webdesign','html','php','sql', 'java', 'play', 'zf', 'wp', 'hosting');
+	foreach( $custom_meta_fields as $custom_meta_field ):
+		if(isset($_POST[$custom_meta_field]) && $_POST[$custom_meta_field] != ""):
+			update_post_meta($post->ID, $custom_meta_field, $_POST[$custom_meta_field]);
+		endif;
+	endforeach;
+}
+
 function CP_meta_options() {
 	global $post;
 	if(isset($custom['client_name']) && isset($custom['client_photo']) && isset($custom['email']) 
@@ -241,8 +235,9 @@ function CP_meta_options() {
 		</tr>
 	</table>
 	<?php
-   } 
-   
+}
+ 
+add_action('save_post', 'CP_save_details');   
 function CP_save_details() {  
 	global $post;  
 	$custom_meta_fields = array( 'client_name','client_photo','email','company_website','company_name' );
