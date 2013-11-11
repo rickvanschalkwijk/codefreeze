@@ -504,7 +504,6 @@ function gct_full_testimonials_shortcode($atts) {
 	
 	$display .= '<div id="testimonials_container">';
 	
-	foreach($posts_array as $post) {
 					
 		// Add custom fields
 		$selected_extended_posts = array();
@@ -521,7 +520,7 @@ function gct_full_testimonials_shortcode($atts) {
 		$display .= '<div class="result">';
 		$display .= gct_single_testimonial($testimonial);
 		$display .= '</div>';
-	}
+	
 	
 	$display .= '</div>';
 	$display .= '<div id="pagingControls"></div>';

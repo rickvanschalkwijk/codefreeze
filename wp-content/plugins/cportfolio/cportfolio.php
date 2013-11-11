@@ -35,20 +35,10 @@ $c_db_version = "1.0";
 function CP_custom_scripts() {
 	global $post;
 	
-	if (strstr ( $post->post_content, '[single-testimonial' ) || 
-		strstr ( $post->post_content, '[random-testimonial' ) || 
-		strstr ( $post->post_content, '[full-testimonials' ) || 
-		strstr ( $post->post_content, '[testimonial-form' )) {
-		//wp_enqueue_style ( 'cpstyles', plugins_url ( '/assets/css/cportfolio.css', __FILE__ ), false, '1.0', 'all' );
-	}
-		//wp_enqueue_script ( 'mason', plugins_url ( '/assets/js/mason.js', __FILE__ ), array (
-		//'mason'
-			//	), '1.0', true );
+	wp_enqueue_style ( 'cpstyles', plugins_url ( '/assets/css/cportfolio.css', __FILE__ ), false, '1.0', 'all' );
 		
-//		wp_enqueue_script ( 'masonry', plugins_url ( '/assets/js/masonry.js', __FILE__ ), array (
-	//			'mansonry' 
-	//	), '1.0', true );
-	//}
+	//wp_enqueue_script ( 'masonry', plugins_url ( '/assets/js/masonry.js', __FILE__ ), array(), 0, true);
+	wp_enqueue_script ( 'init-masonry', plugins_url ( '/assets/js/init-masonry.js', __FILE__ ), array(), 0, true);
 }
 
 add_action ( 'wp_enqueue_scripts', 'CP_custom_scripts' );
@@ -129,7 +119,7 @@ function CP_work_done_options() {
 	global $post;
 	$custom = get_post_custom($post->ID);
 	$logo = (isset($custom["logo"][0])) ? $custom["logo"][0] : '';
-	$webDesign = (isset($custom["web_design"][0])) ? $custom["web_design"][0] : '';
+	$webDesign = (isset($custom["design"][0])) ? $custom["design"][0] : '';
 	$htmlCss = (isset($custom["html"][0])) ? $custom["html"][0] : '';
 	$php = (isset($custom["php"][0])) ? $custom["php"][0] : '';
 	$mySql = (isset($custom["sql"][0])) ? $custom["sql"][0] : '';
@@ -147,11 +137,11 @@ function CP_work_done_options() {
 		</tr>
 		<tr>
 			<td><label for="web-design">Web Design</label></td>
-			<td><input type="checkbox" name="web-design" <?php if( $webDesign == true ) { ?>checked="checked"<?php } ?> /></td>
+			<td><input type="checkbox" name="design" <?php if( $webDesign == true ) { ?>checked="checked"<?php } ?> /></td>
 		</tr>
 		<tr>
 			<td><label for="htmlCss">HTML + CSS</label></td>
-			<td><input type="checkbox" name="htmlCss" <?php if( $htmlCss == true ) { ?>checked="checked"<?php } ?> /></td>
+			<td><input type="checkbox" name="html" <?php if( $htmlCss == true ) { ?>checked="checked"<?php } ?> /></td>
 		</tr>
 		<tr>
 			<td><label for="php">PHP</label></td>
@@ -189,11 +179,9 @@ function CP_work_done_options() {
 add_action('save_post', 'CP_save_workDone');
 function CP_save_workDone() {
 	global $post;
-	$custom_meta_fields = array( 'logo','webdesign','html','php','sql', 'java', 'play', 'zf', 'wp', 'hosting');
+	$custom_meta_fields = array( 'logo','design','html','php','sql', 'java', 'play', 'zf', 'wp', 'hosting');
 	foreach( $custom_meta_fields as $custom_meta_field ):
-		if(isset($_POST[$custom_meta_field]) && $_POST[$custom_meta_field] != ""):
 			update_post_meta($post->ID, $custom_meta_field, $_POST[$custom_meta_field]);
-		endif;
 	endforeach;
 }
 
@@ -247,3 +235,67 @@ function CP_save_details() {
 		endif;
 	endforeach;
 }
+
+/**
+ * Front-end function and HTML
+ */
+add_shortcode( 'CP-portfolio', 'CP_shortcode_fn');
+function CP_shortcode_fn(){
+	//args for the query
+	$args =array(
+		'post_type' 		=> 'portfolio',
+		'posts_per_page' 	=> -1,
+		'orderby'         	=> 'post_date',
+		'order'				=> 'DESC',
+		'post_status'     	=> 'publish'
+	);	
+
+	$wp_query = new WP_Query();
+	$portfolio_array  = $wp_query->query($args);
+	//var_dump($portfolio_array);
+	displayItems($portfolio_array);
+}
+
+function displayItems($items){
+	$display = '<div id="container">';
+	$display .= '<section class="gallery">';
+	$display .= '<ul>';
+	foreach ($items as $item){
+		$display .= '<li id="brick-item" class="brick">
+						<a href="'. $item->guid . '">
+							<div class="gallery-thumbnail-mask"></div>';
+							if(has_post_thumbnail($item->ID)){
+									$image = wp_get_attachment_image_src( get_post_thumbnail_id( $item->ID ), 'medium' );
+									$display .= '<img src="' . $image[0] . '" alt="" height="340px" width="340px" />';	
+							} 
+							$display .= '<div class="entry-headline">
+								<p class="project-title">' . $item->post_title . '</p> 
+							</div>
+							<div class="entry-shortline">
+								<p>' . substr($item->post_content, 0, 175) . '.....</p>
+							</div>
+							<div class="entry-footer">
+								<a href="">Read more >></a>
+							</div>
+						</a>
+					</li>';
+	}
+	
+	$display .= '</ul>';
+	$display .=	'</section>';
+	$display .=	'</div>';
+	
+	echo $display;
+}
+
+//add_filter('the_content', 'displayItems');
+
+
+
+
+
+
+
+
+
+

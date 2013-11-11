@@ -1,6 +1,5 @@
 var easing, e, pos;
 jQuery(function($){
-	console.log("Miep");
 	// Get the click event
   $("#go-top").on("click", function(){
 	 
